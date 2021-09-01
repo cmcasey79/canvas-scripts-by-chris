@@ -1,7 +1,7 @@
 ################################################################################
 ################################################################################
 ## Canvas LTI paramater updater                                               ##
-## Version 2021.07.06.00120                                                   ##
+## Version 2021.09.01.00121                                                   ##
 ##                                                                            ##
 ## Fill in the three variables directly below this header, then run with py   ##
 ## **Use at your own risk.  Please try changes in Test/Beta before Prod.**    ##
@@ -97,11 +97,11 @@ def inputstring_to_value(inputstring):
     if inputstring=='':
         inputstring=None
     elif inputstring.isnumeric():
-        inputstring=int(params[newkey])
+        inputstring=int(inputstring)
     elif inputstring.lower()=='false':
         inputstring=False
     elif inputstring.lower()=='true':
-        params[newkey]=True
+        inputstring=True
     return inputstring
 
 # Prompt for Canvas environment selection
