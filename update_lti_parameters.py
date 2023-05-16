@@ -76,8 +76,10 @@ def requestswithretry(retries=3, backoff_factor=0.3, status_forcelist=(500, 502,
     return session
 
 # Paginated API call to Canvas
-# returns list of dictionary objects from json
-def canvas_get_allpages(url, headers, strip_arg=''):
+# Returns a list of all items from all pages of a paginated API call
+# Last updated 2015-05-16
+def canvas_get_allpages(url, headers):
+    global scriptlog
     if not 'per_page=' in url:
         if '?' in url:
             url=url+'&per_page=100'
@@ -88,25 +90,25 @@ def canvas_get_allpages(url, headers, strip_arg=''):
     while repeat:  
         r=requestswithretry().get(url,headers=headers)
         if r.status_code!=200:
-            print('Error',r.status_code,'while retrieving get response from',url,'at',datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+            print(datetime.now().isoformat()+': Error '+str(r.status_code)+'while retrieving get response from '+url)
+            rl=None
             repeat=False
-        elif strip_arg=='':
-            rl=rl+r.json()
         else:
-            rl=rl+r.json()[strip_arg]
-        if 'current' in r.links.keys():
-            url=r.links['current']['url']
-        if 'last' in r.links.keys():
-            last_url=r.links['last']['url']
-        else:
-            last_url=''
-        if url != last_url:
-            if 'next' in r.links.keys():
+            rj=r.json()
+            # if Canvas returned a single item dictionary instead of a list, try using the value of that dictionary as the list
+            if type(rj) is dict:
+                if len(rj.keys())==1:
+                    rj=next(iter(rj.values()))
+            # if a list was returned, add it to the existing list
+            if type(rj) is list:
+                rl=rl+rj
+            url=r.links.get('current',{}).get('url',url)
+            last_url=r.links.get('last',{}).get('url','')
+            # if not on the last page of results, set up retrieval of next page
+            if (url != last_url) and ('next' in r.links.keys()):
                 url=r.links['next']['url']
             else:
                 repeat=False
-        else:
-            repeat=False
     return rl
 
 # Prompt and/or validate canvas envornment information.  canvas_information is a dict which will be populated by the function.
@@ -364,23 +366,6 @@ else:
             else:
                 lti_parameters_dict[keys[0]][keys[1]]=newkeyvalue
         else:
-            print('Error, parameter already exists')
-    elif paramindex=='S' or paramindex=='s': 
-        url='https://'+canvas_domain+'/api/v1/accounts/'+canvas_account_id+'/external_tools/'+canvas_lti_id
-        r=requests.put(url,headers=put_headers,json=lti_parameters_dict)
-        if r.status_code==200:
-            print('LTI successfully updated!')
-        else:
-            print('Error ',r.status_code,'when attempting to update LTI.')
-        selection=True
-    elif paramindex.isnumeric() and int(paramindex)>=1 and int(paramindex)<=len(lti_parameters_list):
-        newkeyvalue=inputstring_to_value(input('What is new the value of '+lti_parameters_list[int(paramindex)-1]+' (press enter to set to none)? '))
-        keys = re.findall(r"\b\w+\b", lti_parameters_list[int(paramindex)-1])
-        if len(keys)==1:
-            lti_parameters_dict[keys[0]]=newkeyvalue
-        else:
-            lti_parameters_dict[keys[0]][keys[1]]=newkeyvalue
-    else:
-        print('Invalid selection, please try again.')
+            print('Invalid selection, please try again.')
 
 input('Press Enter to continue...')
