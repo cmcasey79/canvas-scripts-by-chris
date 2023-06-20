@@ -124,7 +124,7 @@ def canvas_get_allpages(url, headers):
 # Prompts and/or validates the working environment, domains, api token, account_id.
 # Only validates the working environment by default, but an enviromnet list in the form of ['production','beta','test'] can be passed if validation of additional environments is needed.
 # Returns true if everything was properly validated, false if some information could not be valitated (signaling the script should end)
-# Last updated 2023-04-17.
+# Last updated 2023-06-20.
 def validate_canvas_environment(canvas_environment, validate_environments=None):
     global scriptlog
     # Validate Canvas environment selection and domains
@@ -196,8 +196,8 @@ def validate_canvas_environment(canvas_environment, validate_environments=None):
         if canvas_environment['api_token']=='' and mode[-10:]!='unattended':
             canvas_environment['api_token']=str(input('Please enter your Canvas administrative API token: '))
         #Set HTTP headers for API calls
-        get_headers={'Authorization' : 'Bearer ' + '%s' % canvas_api_token}
-        put_headers={'Authorization' : 'Bearer ' + '%s' % canvas_api_token}
+        get_headers={'Authorization' : 'Bearer ' + canvas_environment['api_token']}
+        put_headers={'Authorization' : 'Bearer ' + canvas_environment['api_token']}
         url='https://'+canvas_environment['domains'][canvas_environment['working_environment']]+'/api/v1/accounts'
         r = requests.get(url,headers=get_headers)
         if r.status_code==200:
