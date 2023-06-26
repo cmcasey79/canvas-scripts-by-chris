@@ -266,22 +266,6 @@ print('Running script version '+script_version+' on '+hostname+', '+IPAddr)
 scriptlog+='Running script version '+script_version+' on '+hostname+', '+IPAddr+'\n'
 start_time = datetime.now()
 
-# If script is running on ITS server, override some manually set values
-if script_version[-3:]=='its':
-    # get canvas-banner api token from ITS secure site
-    if canvas_api_token=='':
-        ITS_PasswordURL='https://passwordstate.it.umich.edu/api/passwords/7910'
-        ITS_PasswordHeader= {'APIKey':'ef3d4c23a75986bf33a4e8752cb69df3'}
-        ITS_PasswordResponse = requestswithretry().get(url = ITS_PasswordURL, headers = ITS_PasswordHeader)
-        if ITS_PasswordResponse.status_code==200:
-            ITS_PasswordJSON=ITS_PasswordResponse.json()
-            #remove the "Authorization: Bearer " prefix, from password.
-            canvas_api_token=ITS_PasswordJSON[0]["Password"][len("Authorization: Bearer "):] #Banner Account Token
-    # set email options to use umich unsecured relay
-    email_smtpservername='relay.mail.umich.edu'
-    email_secureport=587
-    email_authrequired=False
-
 canvas_environment = {'api_token':canvas_api_token, 'subdomain':canvas_subdomain, 'working_environment':canvas_environment, 'domains':{'production':canvas_production_vanity_domain, 'test':canvas_test_vanity_domain, 'beta':canvas_beta_vanity_domain}, 'account_ids':{'root':'', 'working':canvas_account_id}}
 if (not validate_canvas_environment(canvas_environment)):
     print('Canvas environment validation failed.  Exiting Script.')
